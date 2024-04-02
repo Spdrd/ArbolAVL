@@ -38,6 +38,9 @@ NodoAVL<T>* getHijoDer() {
 NodoAVL<T>* getHijoIzq(){
   return this->hijoIzq;
 }
+void setDato(T dato){
+  this->dato = dato;
+}
 void setIzq(NodoAVL<T>* izq){
   this->hijoIzq = izq;
 }
@@ -61,7 +64,7 @@ void agregarHijo(T dato){
   }
 }
 void agregarHijo(NodoAVL<T>* nodo){
-  if(this->dato > nodo->dato){
+  if(this->dato > nodo->getDato()){
     if(this->hijoIzq == NULL){
       this->hijoIzq = nodo;
     }
@@ -78,39 +81,7 @@ void agregarHijo(NodoAVL<T>* nodo){
   }
 }
 NodoAVL<T>* eliminarNodo(T valor){
-  NodoAVL<T> *aux;
-  if(this->hijoIzq != NULL){
-    if(this->hijoIzq->getDato() == valor){
-      std::cout<<"Val Econtrado\n";
-      aux = this->hijoIzq->getHijoIzq();
-      aux->agregarHijo(this->hijoIzq->getHijoDer());
-      return aux;
-    }
-  }
-  if(this->hijoDer != NULL){
-    if(this->hijoDer->getDato() == valor){
-      std::cout<<"Val Econtrado\n";
-      aux = this->hijoDer->getHijoIzq();
-      aux->agregarHijo(this->hijoDer->getHijoDer());
-      return aux;
-    }
-  }
-  if(valor < this->dato){
-    if(this->hijoIzq != NULL){
-       aux = this->hijoIzq->eliminarNodo(valor);
-      if(aux != NULL)
-        return aux;
-    }
-  }
-  if(valor > this->dato){
-    std::cout << "Val mayor\n";
-    if(this->hijoDer != NULL){
-      aux = this->hijoDer->eliminarNodo(valor);
-      if(aux != NULL)
-        return aux;
-    }
-  }
-  return NULL;
+
 }
 T getDato() { 
   return this->dato; 
@@ -152,18 +123,6 @@ int altura(NodoAVL<T>* nodo) {
   alturaIzq = altura(nodo->getHijoIzq());
   alturaDer = altura(nodo->getHijoDer());
   if (alturaIzq > alturaDer){
-    return alturaIzq + 1;
-  }else{
-    return alturaDer + 1;
-  }
-}
-int alturaMin(NodoAVL<T>* nodo) {
-  if(nodo == NULL)
-    return -1;
-  int alturaIzq = -1, alturaDer = -1;
-  alturaIzq = alturaMin(nodo->getHijoIzq());
-  alturaDer = alturaMin(nodo->getHijoDer());
-  if (alturaIzq < alturaDer){
     return alturaIzq + 1;
   }else{
     return alturaDer + 1;
@@ -239,6 +198,7 @@ void rotarDerIzq(){
   this->rotarIzquierda();
 }
 void imprimirArbol(){
+  std::cout << this->dato << "\n";
   if(hijoIzq != NULL)
     std::cout << this->dato << "->" << this->hijoIzq->dato << "\n";
   if(hijoDer != NULL)
@@ -259,6 +219,23 @@ NodoAVL<T>* buscar(T valor){
     return this->hijoDer->buscar(valor);
   }
   return NULL;
+}
+NodoAVL<T>* buscarPadre(T valor){
+  if(this->hijoIzq->getDato() == valor || this->hijoDer->getDato() == valor){
+    return this;
+  }
+  if((valor < this->dato) && (this->hijoIzq != NULL)){
+    return this->hijoIzq->buscarPadre(valor);
+  }
+  if((this->dato < valor) && (hijoDer != NULL)){
+    return this->hijoDer->buscarPadre(valor);
+  }
+  return NULL;
+}
+void reemplazar(NodoAVL<T>* reemplazo){
+  this->dato = reemplazo->getDato();
+  this->hijoIzq = reemplazo->getHijoIzq();
+  this->hijoDer = reemplazo->getHijoDer();
 }
 
 };
@@ -318,21 +295,41 @@ void imprimirArbol(){
     return;
   this->raiz->imprimirArbol();
 }
-
 NodoAVL<T>* buscar(T valor){
-return this->raiz->buscar(valor);
+  if(raiz->getDato() == valor){
+    return raiz;
+  }
+  return this->raiz->buscar(valor);
 }
 void erase(T valor){
-  NodoAVL<T> *aux = this->raiz->eliminarNodo(valor);
-  if(raiz == NULL)
+  if(raiz == NULL){
     return;
-  if(this->raiz->getDato() == valor){
-    aux = this->raiz->getHijoIzq();
-    aux->agregarHijo(this->raiz->getHijoDer());
-    this->raiz = aux;
   }
-  else if(aux != NULL){
-    this->raiz = aux;
+  NodoAVL<T> *auxEliminar = this->raiz->buscar(valor);
+  if(auxEliminar != NULL){
+    NodoAVL<T> *auxIzq = auxEliminar->getHijoIzq();
+    NodoAVL<T> *auxDer = auxEliminar->getHijoDer();
+    if(auxIzq != NULL){
+      if(auxDer != NULL){
+        auxIzq->agregarHijo(auxDer);
+      }
+      auxEliminar->reemplazar(auxIzq);
+    }
+    else if(auxDer != NULL){
+      auxEliminar->reemplazar(auxDer);
+    }
+    else{
+      NodoAVL<T> *auxPadre = this->raiz->buscarPadre(valor);
+      if(auxPadre->getHijoIzq()->getDato() == valor){
+        auxPadre->setIzq(NULL);
+      }
+      else{
+        auxPadre->setDer(NULL);
+      }
+    }
+    if(!auxEliminar->equilibrado()){
+      auxEliminar->ordenar();
+    }
   }
 }
 };

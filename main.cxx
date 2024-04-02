@@ -10,13 +10,11 @@ int main() {
     arbol.insert(a);
     arbol.imprimirArbol();
   }
-  NodoAVL<int> *aux = arbol.buscar(11);
-  if(aux != NULL){
-    std::cout << "Nodo no encontrado \n";
+  while(true){
+    std::cout << "Numero a eliminar: ";
+    std::cin >> a;
+    arbol.erase(a);
+    arbol.imprimirArbol();
   }
-  else{
-    aux->imprimirArbol();
-  }
-  
   return 0;
 }
